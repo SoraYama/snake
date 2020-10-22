@@ -1,0 +1,41 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.start-btn {
+  user-select: none;
+  margin-bottom: 20px;
+}
+
+.container {
+  border: 2px solid #505050;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  display: flex;
+  font-size: 12px;
+  justify-content: center;
+  align-items: center;
+  /* border: 1px solid #e0e0e0; */
+}
+
+.bean {
+  border-radius: 50%;
+  background-color: #505050;
+}
+
+.snake {
+  background-color: #505050;
+}
+
+.snake.head {
+  background-color: #202020;
+}
