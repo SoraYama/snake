@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  snake:
+    build: .
+    image: snake
+    container_name: 'snake'
+    ports:
+      - '8001:8001'
