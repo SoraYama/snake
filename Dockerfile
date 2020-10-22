@@ -1,5 +1,7 @@
 FROM node:12-alpine as builder
 WORKDIR /app
+COPY ./package.json ./package.json
+RUN npm install --registry=https://registry.npm.taobao.org
 COPY . .
 RUN npm run build
 
