@@ -5,7 +5,7 @@ RUN npm install --registry=https://registry.npm.taobao.org
 COPY . .
 RUN npm run build
 
-FROM node
+FROM node:12-alpine
 RUN npm install -g serve
 WORKDIR /app
 COPY --from=builder /app/build .
