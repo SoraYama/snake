@@ -5,22 +5,24 @@ import Snake from './Snake';
 
 class App extends React.Component {
   state = {
-    size: 15,
+    size: 6,
     speed: 2,
-    snakeSize: 15,
+    snakeSize: 6,
     snakeSpeed: 2,
     unmount: false,
   }
 
   handleSpeedChange = (e) => {
     this.setState({
-      speed: e.target.value,
+      speed: +e.target.value,
     })
   }
 
   handleSizeChange = (e) => {
+    let size = +e.target.value;
+
     this.setState({
-      size: e.target.value,
+      size: Math.max(size, 5),
     })
   }
 

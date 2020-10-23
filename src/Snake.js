@@ -14,12 +14,12 @@ const Directions = {
   LEFT: 'L',
 };
 
-// const DirectionText = {
-//   'U': '↑',
-//   'D': '↓',
-//   'R': '→',
-//   'L': '←',
-// }
+const DirectionText = {
+  'U': '↑',
+  'D': '↓',
+  'R': '→',
+  'L': '←',
+}
 
 const Status = {
   READY: 0,
@@ -43,12 +43,6 @@ const BtnText = {
 };
 
 class Snake extends React.Component {
-  snake = {
-    length: 0,
-    direction: Directions.RIGHT,
-    head: [0, 0],
-  };
-
   static defaultProps = {
     size: 5,
     speed: 1,
@@ -65,10 +59,19 @@ class Snake extends React.Component {
     const map = Array(size)
       .fill('')
       .map(() => Array(size).fill(0));
+    // const map = [
+    //   [1, 2, 3, 4, 5, 6],
+    //   [12, 11, 10, 9, 8, 7],
+    //   [13, 14, 15, 16, 17, 18],
+    //   [24, 23, 22, 21, 20, 19],
+    //   [25, 26, 27, 28, 29, 30],
+    //   [0, 0, 34, 33, 32, 31],
+    // ];
 
     this.state = {
       map,
       status: Status.READY,
+      direction: Directions.RIGHT,
     };
   }
 
@@ -76,12 +79,10 @@ class Snake extends React.Component {
     const { size } = this.props;
     const { map } = this.state;
     const INIT_SNAKE_LENGTH = 2;
-    this.snake.length = INIT_SNAKE_LENGTH;
     const [snakeInitPositionX, snakeInitPositionY] = [
       Math.min(getRandomInt(size), size - INIT_SNAKE_LENGTH - 1),
       getRandomInt(size),
     ];
-    this.snake.head = [snakeInitPositionX + INIT_SNAKE_LENGTH - 1, snakeInitPositionY];
     for (let i = snakeInitPositionX; i < snakeInitPositionX + INIT_SNAKE_LENGTH; i++) {
       map[snakeInitPositionY][i] = i - snakeInitPositionX + 1;
     }
@@ -90,11 +91,39 @@ class Snake extends React.Component {
     this.setState({ map });
   }
 
+  get snakeLength() {
+    const { size } = this.props;
+    const { map } = this.state;
+    let len = 0;
+    for (let j = 0; j < size; j++) {
+      for (let i = 0; i < size; i++) {
+        if (map[j][i] > 0) {
+          len++;
+        }
+      }
+    }
+    return len;
+  }
+
+  get snakeHead() {
+    const { size } = this.props;
+    const { map } = this.state;
+    const len = this.snakeLength;
+    for (let j = 0; j < size; j++) {
+      for (let i = 0; i < size; i++) {
+        if (map[j][i] === len) {
+          return [i, j]
+        }
+      }
+    }
+    return [0, 0];
+  }
+
   move() {
     const { size } = this.props;
     const { map, status } = this.state;
 
-    if (status === Status.GAME_OVER) {
+    if (status !== Status.PLAYING) {
       return;
     }
 
@@ -108,11 +137,11 @@ class Snake extends React.Component {
       return;
     }
     if (nextCell === BEAN_TOKEN) {
-      this.snake.head = [nextX, nextY];
-      this.snake.length++;
-      map[nextY][nextX] = this.snake.length;
-      if (this.snake.length === size ** 2) {
-        this.setState({ map, status: Status.READY });
+      const curLen = this.snakeLength + 1;
+      map[nextY][nextX] = curLen;
+      if (curLen === size ** 2) {
+        this.setState({ map, status: Status.WIN });
+        return;
       }
       const [nextBeanX, nextBeanY] = this.getNextBeanPosition();
       map[nextBeanY][nextBeanX] = BEAN_TOKEN;
@@ -120,9 +149,7 @@ class Snake extends React.Component {
       return;
     }
 
-    const {
-      head: [headX, headY],
-    } = this.snake;
+    const [headX, headY] = this.snakeHead;
     const headCell = map[headY][headX];
 
     for (let j = 0; j < size; j++) {
@@ -134,17 +161,16 @@ class Snake extends React.Component {
         map[j][i] = Math.max(0, map[j][i] - 1);
       }
     }
-    this.snake.head = [nextX, nextY];
     map[nextY][nextX] = headCell;
     this.setState({
       map,
     });
   }
 
-  getNextHeadPosition() {
-    const { direction, head } = this.snake;
-    const [headX, headY] = head;
-    switch (direction) {
+  getNextHeadPosition(nextDirection) {
+    const { direction } = this.state;
+    const [headX, headY] = this.snakeHead;
+    switch (nextDirection || direction) {
       case Directions.DOWN:
         return [headX, headY + 1];
       case Directions.UP:
@@ -186,37 +212,53 @@ class Snake extends React.Component {
   }
 
   listner = (e) => {
+    if (e.key === ' ') {
+      this.handleClickBtn();
+      return;
+    }
+
+    let nextDirection = this.state.direction;
+
     switch (e.key) {
       case 'd':
       case 'ArrowRight':
-        if (this.snake.direction !== Directions.LEFT) {
-          this.snake.direction = Directions.RIGHT;
+        if (nextDirection !== Directions.LEFT) {
+          nextDirection = Directions.RIGHT;
         }
         break;
       case 'w':
       case 'ArrowUp':
-        if (this.snake.direction !== Directions.DOWN) {
-          this.snake.direction = Directions.UP;
+        if (nextDirection !== Directions.DOWN) {
+          nextDirection = Directions.UP;
         }
         break;
       case 'a':
       case 'ArrowLeft':
-        if (this.snake.direction !== Directions.RIGHT) {
-          this.snake.direction = Directions.LEFT;
+        if (nextDirection !== Directions.RIGHT) {
+          nextDirection = Directions.LEFT;
         }
         break;
       case 's':
       case 'ArrowDown':
-        if (this.snake.direction !== Directions.UP) {
-          this.snake.direction = Directions.DOWN;
+        if (nextDirection !== Directions.UP) {
+          nextDirection = Directions.DOWN;
         }
-        break;
-      case ' ':
-        this.handleClickBtn();
         break;
       default:
         return;
     }
+
+    const [nextX, nextY] = this.getNextHeadPosition(nextDirection);
+    const [headX, headY] = this.snakeHead;
+    const { map } = this.state;
+
+    if (map[nextY]?.[nextX] === map[headY][headX] - 1) {
+      return;
+    }
+
+    this.setState({
+      direction: nextDirection,
+    })
   };
 
   registerEventListener() {
@@ -258,7 +300,7 @@ class Snake extends React.Component {
       }
     }
     this.init();
-    this.setState({ map, status: Status.READY });
+    this.setState({ map, status: Status.READY, direction: Directions.RIGHT });
   }
 
   componentDidMount() {
@@ -279,14 +321,13 @@ class Snake extends React.Component {
 
   render() {
     const { size, isDebug } = this.props;
-    const { map, status } = this.state;
-    const {
-      head: [headX, headY],
-    } = this.snake;
+    const { map, status, direction } = this.state;
+    const [headX, headY] = this.snakeHead;
 
     return (
       <div className="wrapper">
         <h2>{StatusText[status]}</h2>
+        <h5>(current direction: {DirectionText[direction]})</h5>
         <button className="start-btn" onClick={this.handleClickBtn}>
           {BtnText[status]}
         </button>
